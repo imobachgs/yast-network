@@ -103,7 +103,7 @@ module Yast
             Punycode.DecodeDomainName(name),
             Ops.get(Punycode.DecodePunycodes([aliases]), 0, "")
           )
-          table_items = Builtins.add(table_items, item)
+          table_items << item
         end
       end
       Builtins.y2debug("table_items=%1", table_items)
