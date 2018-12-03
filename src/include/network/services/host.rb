@@ -42,6 +42,7 @@ module Yast
       Yast.import "Popup"
       Yast.import "Punycode"
       Yast.import "Wizard"
+      Yast.import "Logger"
 
       Yast.include include_target, "network/routines.rb"
     end
@@ -88,24 +89,23 @@ module Yast
 
       Builtins.y2debug("hosts=%1", hosts)
 
-      # make ui items from the hosts list
-      Builtins.maplist(hosts) do |host, names|
-        if Ops.less_than(Builtins.size(names), 1)
-          Builtins.y2error("Invalid host: %1, (%2)", host, names)
+      hosts.each do |host, names|
+        if names.empty?
+          log.error("Invalid host %1: no name found", host)
+
           next
         end
-        Builtins.foreach(names) do |s|
-          name = Builtins.regexpsub(s, "^([^ \t]+)[ \t]*.*$", "\\1")
-          aliases = Builtins.regexpsub(s, "^[^ \t]+[ \t]*(.*)[ \t]*$", "\\1")
-          item = Item(
-            Id(Builtins.size(table_items)),
-            host,
-            Punycode.DecodeDomainName(name),
-            Ops.get(Punycode.DecodePunycodes([aliases]), 0, "")
-          )
-          table_items << item
-        end
+
+        name, *aliases = *names.join.split(/\s+/).reject(&:empty?)
+
+        table_items << Item(
+          Id(table_items.size),
+          host,
+          name,
+          aliases.join(" ")
+        )
       end
+
       Builtins.y2debug("table_items=%1", table_items)
       max = Builtins.size(table_items)
 
