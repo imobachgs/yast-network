@@ -27,6 +27,7 @@ describe Yast::Host do
 
     # do nothing on system
     allow(Yast::Execute).to receive(:on_target)
+    Yast::Host.main
   end
 
   describe ".Read" do
