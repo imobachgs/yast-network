@@ -41,7 +41,6 @@ module Yast
       Yast.include self, "network/routines.rb"
 
       # Data was modified?
-      # TODO: Drop the flag. It is useless since we have @hosts and @hosts_init
       @modified = false
 
       @initialized = false
@@ -128,12 +127,6 @@ module Yast
 
       if !@modified
         Builtins.y2milestone("No changes to Host -> nothing to write")
-        return true
-      end
-
-      # Check if there is anything to do
-      if @hosts_init == @hosts
-        Builtins.y2milestone("Hosts not modified")
         return true
       end
 
@@ -358,12 +351,7 @@ module Yast
   def load_hosts
     return false if SCR.Read(path(".target.size"), CFA::Hosts::PATH) <= 0
 
-    @hosts = CFA::Hosts.new
     @hosts.load
-
-    # save hosts to check for changes later
-    @hosts_init = CFA::Hosts.new
-    @hosts_init.load
 
     true
 
@@ -371,10 +359,6 @@ module Yast
   # (e.g. corrupted file, file access error, ...)
   rescue IOError, SystemCallError, RuntimeError => error
     log.error("Loading /etc/hosts failed with exception #{error.inspect}")
-
-    # get clean environment, crashing due to exception is no option here
-    @hosts = CFA::Hosts.new
-    @hosts_init = nil
 
     # reraise the exception - let the gui takes care of it
     raise
